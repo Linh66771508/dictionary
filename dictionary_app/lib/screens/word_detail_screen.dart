@@ -80,7 +80,7 @@ class WordDetailScreen extends StatelessWidget {
                         backgroundColor: const Color(0xFFDBEAFE),
                         child: Text('${entry.key + 1}', style: const TextStyle(fontSize: 12)),
                       ),
-                      title: Text(entry.value),
+                      title: Text(entry.value.definition),
                     ),
                   )
                   .toList(),
@@ -95,7 +95,7 @@ class WordDetailScreen extends StatelessWidget {
                     .map(
                       (ex) => ListTile(
                         leading: const Icon(Icons.format_quote),
-                        title: Text(ex),
+                        title: Text(ex.exampleText),
                       ),
                     )
                     .toList(),

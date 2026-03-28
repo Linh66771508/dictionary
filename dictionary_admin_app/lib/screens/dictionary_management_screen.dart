@@ -19,14 +19,15 @@ class _DictionaryManagementScreenState extends State<DictionaryManagementScreen>
   final TextEditingController meaningController = TextEditingController();
   final TextEditingController exampleController = TextEditingController();
 
-  final TextEditingController synonymController = TextEditingController();
-  final TextEditingController synonymIntensityController = TextEditingController();
-  final TextEditingController synonymFrequencyController = TextEditingController();
-  final TextEditingController synonymNoteController = TextEditingController();
+  final TextEditingController editWordController = TextEditingController();
+  final TextEditingController editPosController = TextEditingController();
+  final TextEditingController editPronController = TextEditingController();
+  final TextEditingController editFreqController = TextEditingController();
+  final TextEditingController editRegisterController = TextEditingController();
+  final TextEditingController editEtymologyController = TextEditingController();
 
-  final TextEditingController proverbPhraseController = TextEditingController();
-  final TextEditingController proverbMeaningController = TextEditingController();
-  final TextEditingController proverbUsageController = TextEditingController();
+  final TextEditingController newMeaningController = TextEditingController();
+  final TextEditingController newExampleController = TextEditingController();
 
   late Future<List<WordSummary>> wordsFuture;
   WordSummary? selectedWord;
@@ -58,6 +59,12 @@ class _DictionaryManagementScreenState extends State<DictionaryManagementScreen>
     setState(() {
       selectedDetail = detail;
       loadingDetail = false;
+      editWordController.text = detail.word;
+      editPosController.text = detail.partOfSpeech ?? '';
+      editPronController.text = detail.pronunciation ?? '';
+      editFreqController.text = detail.frequency ?? '';
+      editRegisterController.text = detail.register ?? '';
+      editEtymologyController.text = detail.etymology ?? '';
     });
   }
 
@@ -95,53 +102,83 @@ class _DictionaryManagementScreenState extends State<DictionaryManagementScreen>
     await _refresh();
   }
 
-  Future<void> _addSynonym() async {
+  Future<void> _updateWordInfo() async {
     if (selectedWord == null) return;
-    final word = synonymController.text.trim();
-    if (word.isEmpty) return;
-    final intensity = int.tryParse(synonymIntensityController.text.trim());
-    await api.addSynonym(
-      wordId: selectedWord!.id,
-      synonymWord: word,
-      intensity: intensity,
-      frequency: synonymFrequencyController.text.trim(),
-      note: synonymNoteController.text.trim(),
-    );
-    synonymController.clear();
-    synonymIntensityController.clear();
-    synonymFrequencyController.clear();
-    synonymNoteController.clear();
+    await api.updateWord(selectedWord!.id, {
+      'word': editWordController.text.trim(),
+      'part_of_speech': editPosController.text.trim(),
+      'pronunciation': editPronController.text.trim(),
+      'frequency': editFreqController.text.trim(),
+      'register': editRegisterController.text.trim(),
+      'etymology': editEtymologyController.text.trim(),
+    });
     await _loadDetail(selectedWord!);
   }
 
-  Future<void> _deleteSynonym(int id) async {
-    await api.deleteSynonym(id);
-    if (selectedWord != null) {
+  Future<void> _addMeaning() async {
+    if (selectedWord == null) return;
+    final def = newMeaningController.text.trim();
+    if (def.isEmpty) return;
+    await api.addMeaning(selectedWord!.id, def);
+    newMeaningController.clear();
+    await _loadDetail(selectedWord!);
+  }
+
+  Future<void> _editMeaning(int id, String current) async {
+    final controller = TextEditingController(text: current);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Sửa nghĩa'),
+        content: TextField(controller: controller, maxLines: 3),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Hủy')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Lưu')),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await api.updateMeaning(id, definition: controller.text.trim());
       await _loadDetail(selectedWord!);
     }
   }
 
-  Future<void> _addProverb() async {
-    if (selectedWord == null) return;
-    final phrase = proverbPhraseController.text.trim();
-    if (phrase.isEmpty) return;
-    await api.addProverb(
-      wordId: selectedWord!.id,
-      phrase: phrase,
-      meaning: proverbMeaningController.text.trim(),
-      usage: proverbUsageController.text.trim(),
-    );
-    proverbPhraseController.clear();
-    proverbMeaningController.clear();
-    proverbUsageController.clear();
+  Future<void> _deleteMeaning(int id) async {
+    await api.deleteMeaning(id);
     await _loadDetail(selectedWord!);
   }
 
-  Future<void> _deleteProverb(int id) async {
-    await api.deleteProverb(id);
-    if (selectedWord != null) {
+  Future<void> _addExample() async {
+    if (selectedWord == null) return;
+    final text = newExampleController.text.trim();
+    if (text.isEmpty) return;
+    await api.addExample(selectedWord!.id, text);
+    newExampleController.clear();
+    await _loadDetail(selectedWord!);
+  }
+
+  Future<void> _editExample(int id, String current) async {
+    final controller = TextEditingController(text: current);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Sửa ví dụ'),
+        content: TextField(controller: controller, maxLines: 3),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Hủy')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Lưu')),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await api.updateExample(id, controller.text.trim());
       await _loadDetail(selectedWord!);
     }
+  }
+
+  Future<void> _deleteExample(int id) async {
+    await api.deleteExample(id);
+    await _loadDetail(selectedWord!);
   }
 
   @override
@@ -235,67 +272,81 @@ class _DictionaryManagementScreenState extends State<DictionaryManagementScreen>
                       ),
                       const SizedBox(height: 16),
                       _card(
-                        title: 'Đồng nghĩa & Tục ngữ',
+                        title: 'Chỉnh sửa thông tin từ',
                         child: loadingDetail
                             ? const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator()))
                             : selectedDetail == null
-                                ? const Text('Chọn một từ để quản lý đồng nghĩa và tục ngữ.')
+                                ? const Text('Chọn một từ để chỉnh sửa.')
                                 : Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(selectedDetail!.word, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      TextField(controller: editWordController, decoration: const InputDecoration(labelText: 'Từ')),
+                                      const SizedBox(height: 8),
+                                      TextField(controller: editPosController, decoration: const InputDecoration(labelText: 'Loại từ')),
+                                      const SizedBox(height: 8),
+                                      TextField(controller: editPronController, decoration: const InputDecoration(labelText: 'Phát âm')),
+                                      const SizedBox(height: 8),
+                                      TextField(controller: editFreqController, decoration: const InputDecoration(labelText: 'Tần suất')),
+                                      const SizedBox(height: 8),
+                                      TextField(controller: editRegisterController, decoration: const InputDecoration(labelText: 'Văn phong')),
+                                      const SizedBox(height: 8),
+                                      TextField(controller: editEtymologyController, decoration: const InputDecoration(labelText: 'Từ nguyên'), maxLines: 3),
                                       const SizedBox(height: 12),
-                                      const Text('Thêm đồng nghĩa', style: TextStyle(fontWeight: FontWeight.w600)),
-                                      const SizedBox(height: 8),
-                                      TextField(controller: synonymController, decoration: const InputDecoration(labelText: 'Từ đồng nghĩa')),
-                                      const SizedBox(height: 8),
-                                      TextField(controller: synonymIntensityController, decoration: const InputDecoration(labelText: 'Mức độ (0-100)'), keyboardType: TextInputType.number),
-                                      const SizedBox(height: 8),
-                                      TextField(controller: synonymFrequencyController, decoration: const InputDecoration(labelText: 'Tần suất')),
-                                      const SizedBox(height: 8),
-                                      TextField(controller: synonymNoteController, decoration: const InputDecoration(labelText: 'Ghi chú')),
-                                      const SizedBox(height: 8),
-                                      ElevatedButton.icon(onPressed: _addSynonym, icon: const Icon(Icons.add), label: const Text('Thêm đồng nghĩa')),
-                                      const SizedBox(height: 12),
-                                      ...selectedDetail!.synonyms.map(
-                                        (syn) => ListTile(
-                                          contentPadding: EdgeInsets.zero,
-                                          title: Text(syn.word),
-                                          subtitle: Text([
-                                            if (syn.intensity != null) 'Mức: ${syn.intensity}',
-                                            if (syn.frequency != null && syn.frequency!.isNotEmpty) 'Tần suất: ${syn.frequency}',
-                                            if (syn.note != null && syn.note!.isNotEmpty) syn.note,
-                                          ].join(' • ')),
-                                          trailing: IconButton(
-                                            icon: const Icon(Icons.delete_outline),
-                                            onPressed: () => _deleteSynonym(syn.id),
-                                          ),
-                                        ),
-                                      ),
-                                      const Divider(height: 28),
-                                      const Text('Thêm tục ngữ / thành ngữ', style: TextStyle(fontWeight: FontWeight.w600)),
-                                      const SizedBox(height: 8),
-                                      TextField(controller: proverbPhraseController, decoration: const InputDecoration(labelText: 'Câu tục ngữ')),
-                                      const SizedBox(height: 8),
-                                      TextField(controller: proverbMeaningController, decoration: const InputDecoration(labelText: 'Ý nghĩa'), maxLines: 2),
-                                      const SizedBox(height: 8),
-                                      TextField(controller: proverbUsageController, decoration: const InputDecoration(labelText: 'Cách dùng'), maxLines: 2),
-                                      const SizedBox(height: 8),
-                                      ElevatedButton.icon(onPressed: _addProverb, icon: const Icon(Icons.add), label: const Text('Thêm tục ngữ')),
-                                      const SizedBox(height: 12),
-                                      ...selectedDetail!.proverbs.map(
-                                        (p) => ListTile(
-                                          contentPadding: EdgeInsets.zero,
-                                          title: Text(p.phrase),
-                                          subtitle: Text(p.meaning ?? ''),
-                                          trailing: IconButton(
-                                            icon: const Icon(Icons.delete_outline),
-                                            onPressed: () => _deleteProverb(p.id),
-                                          ),
-                                        ),
-                                      ),
+                                      ElevatedButton.icon(onPressed: _updateWordInfo, icon: const Icon(Icons.save), label: const Text('Lưu thay đổi')),
                                     ],
                                   ),
+                      ),
+                      const SizedBox(height: 16),
+                      _card(
+                        title: 'Quản lý nghĩa',
+                        child: selectedDetail == null
+                            ? const Text('Chọn một từ để quản lý nghĩa.')
+                            : Column(
+                                children: [
+                                  TextField(controller: newMeaningController, decoration: const InputDecoration(labelText: 'Nghĩa mới'), maxLines: 3),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton.icon(onPressed: _addMeaning, icon: const Icon(Icons.add), label: const Text('Thêm nghĩa')),
+                                  const SizedBox(height: 12),
+                                  ...selectedDetail!.meanings.map(
+                                    (m) => ListTile(
+                                      title: Text(m.definition),
+                                      subtitle: Text('Thứ tự: ${m.senseOrder}'),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(icon: const Icon(Icons.edit), onPressed: () => _editMeaning(m.id, m.definition)),
+                                          IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => _deleteMeaning(m.id)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+                      _card(
+                        title: 'Quản lý ví dụ',
+                        child: selectedDetail == null
+                            ? const Text('Chọn một từ để quản lý ví dụ.')
+                            : Column(
+                                children: [
+                                  TextField(controller: newExampleController, decoration: const InputDecoration(labelText: 'Ví dụ mới'), maxLines: 2),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton.icon(onPressed: _addExample, icon: const Icon(Icons.add), label: const Text('Thêm ví dụ')),
+                                  const SizedBox(height: 12),
+                                  ...selectedDetail!.examples.map(
+                                    (e) => ListTile(
+                                      title: Text(e.exampleText),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(icon: const Icon(Icons.edit), onPressed: () => _editExample(e.id, e.exampleText)),
+                                          IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => _deleteExample(e.id)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
                     ],
                   ),

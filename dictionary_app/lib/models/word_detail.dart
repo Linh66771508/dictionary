@@ -1,6 +1,8 @@
 ﻿import 'topic.dart';
 import 'synonym.dart';
 import 'proverb.dart';
+import 'meaning.dart';
+import 'example.dart';
 
 class WordDetail {
   final int id;
@@ -10,8 +12,8 @@ class WordDetail {
   final String? frequency;
   final String? register;
   final String? etymology;
-  final List<String> meanings;
-  final List<String> examples;
+  final List<Meaning> meanings;
+  final List<Example> examples;
   final List<Synonym> synonyms;
   final List<Proverb> proverbs;
   final List<Topic> topics;
@@ -43,10 +45,10 @@ class WordDetail {
       register: json['register'] as String?,
       etymology: json['etymology'] as String?,
       meanings: (json['meanings'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
+          .map((e) => Meaning.fromJson(e as Map<String, dynamic>))
           .toList(),
       examples: (json['examples'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
+          .map((e) => Example.fromJson(e as Map<String, dynamic>))
           .toList(),
       synonyms: (json['synonyms'] as List<dynamic>? ?? [])
           .map((e) => Synonym.fromJson(e as Map<String, dynamic>))

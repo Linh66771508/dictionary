@@ -1,3 +1,3 @@
-﻿class AppConfig {
-  static const String apiBaseUrl = 'http://127.0.0.1:8000';
+class AppConfig {
+  static const String apiBaseUrl = 'https://dictionary-q5mo.onrender.com';
 }

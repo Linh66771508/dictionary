@@ -1,0 +1,13 @@
+﻿# Python
+__pycache__/
+*.pyc
+
+# Flutter
+.dart_tool/
+build/
+.metadata
+
+# VS/SQLServer
+.vs/
+*.ssmssln
+*.ssms_suo

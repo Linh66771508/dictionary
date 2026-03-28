@@ -1,0 +1,54 @@
+﻿<mxfile host="app.diagrams.net" modified="2026-03-28T00:00:00.000Z" agent="drawio" version="20.6.0">
+  <diagram name="Sequence" id="sequence-1">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="u" value="Nguoi dung" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a" value="App (Flutter)" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="260" y="40" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="b" value="Backend (FastAPI)" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="40" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d" value="Database (SQLite)" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="40" width="160" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m1" value="Nhap tu can tra" style="endArrow=block;html=1;" edge="1" parent="1" source="u" target="a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m2" value="GET /words/search" style="endArrow=block;html=1;" edge="1" parent="1" source="a" target="b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m3" value="Query words" style="endArrow=block;html=1;" edge="1" parent="1" source="b" target="d">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m4" value="Danh sach tu" style="endArrow=block;html=1;" edge="1" parent="1" source="d" target="b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m5" value="JSON ket qua" style="endArrow=block;html=1;" edge="1" parent="1" source="b" target="a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m6" value="GET /words/id/{id}" style="endArrow=block;html=1;" edge="1" parent="1" source="a" target="b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m7" value="Lay chi tiet" style="endArrow=block;html=1;" edge="1" parent="1" source="b" target="d">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m8" value="Chi tiet tu" style="endArrow=block;html=1;" edge="1" parent="1" source="d" target="b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m9" value="JSON chi tiet" style="endArrow=block;html=1;" edge="1" parent="1" source="b" target="a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m10" value="Hien thi" style="endArrow=block;html=1;" edge="1" parent="1" source="a" target="u">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
