@@ -111,12 +111,15 @@ class WordDetailScreen extends StatelessWidget {
                 runSpacing: 8,
                 children: detail.synonyms
                     .map(
-                      (syn) => ActionChip(
-                        label: Text(syn.word),
-                        onPressed: () => onWordTap(syn.word),
-                        backgroundColor: const Color(0xFFECFEFF),
-                        labelStyle: const TextStyle(color: Color(0xFF0F766E)),
-                      ),
+                      (syn) {
+                        final label = syn.synonymWord ?? syn.word ?? '';
+                        return ActionChip(
+                          label: Text(label),
+                          onPressed: label.isEmpty ? null : () => onWordTap(label),
+                          backgroundColor: const Color(0xFFECFEFF),
+                          labelStyle: const TextStyle(color: Color(0xFF0F766E)),
+                        );
+                      },
                     )
                     .toList(),
               ),

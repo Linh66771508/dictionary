@@ -36,6 +36,9 @@ class WordDetail {
   });
 
   factory WordDetail.fromJson(Map<String, dynamic> json) {
+    final meaningList = (json['meanings'] as List<dynamic>? ?? []);
+    final exampleList = (json['examples'] as List<dynamic>? ?? []);
+
     return WordDetail(
       id: json['id'] as int,
       word: json['word'] as String,
@@ -44,11 +47,30 @@ class WordDetail {
       frequency: json['frequency'] as String?,
       register: json['register'] as String?,
       etymology: json['etymology'] as String?,
-      meanings: (json['meanings'] as List<dynamic>? ?? [])
-          .map((e) => Meaning.fromJson(e as Map<String, dynamic>))
+      meanings: meaningList
+          .asMap()
+          .entries
+          .map((entry) {
+            final value = entry.value;
+            if (value is String) {
+              return Meaning(id: 0, definition: value, senseOrder: entry.key + 1);
+            }
+            if (value is Map<String, dynamic>) {
+              return Meaning.fromJson(value);
+            }
+            return Meaning(id: 0, definition: value.toString(), senseOrder: entry.key + 1);
+          })
           .toList(),
-      examples: (json['examples'] as List<dynamic>? ?? [])
-          .map((e) => Example.fromJson(e as Map<String, dynamic>))
+      examples: exampleList
+          .map((e) {
+            if (e is String) {
+              return Example(id: 0, exampleText: e);
+            }
+            if (e is Map<String, dynamic>) {
+              return Example.fromJson(e);
+            }
+            return Example(id: 0, exampleText: e.toString());
+          })
           .toList(),
       synonyms: (json['synonyms'] as List<dynamic>? ?? [])
           .map((e) => Synonym.fromJson(e as Map<String, dynamic>))
