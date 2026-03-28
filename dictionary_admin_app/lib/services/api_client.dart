@@ -7,6 +7,7 @@ import '../models/word_summary.dart';
 import '../models/word_detail.dart';
 import '../models/synonym.dart';
 import '../models/proverb.dart';
+import '../models/topic.dart';
 
 class ApiClient {
   final String baseUrl;
@@ -254,5 +255,64 @@ class ApiClient {
     }
     final data = jsonDecode(res.body) as List<dynamic>;
     return data.map((e) => Proverb.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<Topic>> listTopics() async {
+    final res = await http.get(Uri.parse('$baseUrl/topics'));
+    if (res.statusCode != 200) {
+      throw Exception('List topics failed');
+    }
+    final data = jsonDecode(res.body) as List<dynamic>;
+    return data.map((e) => Topic.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<WordSummary>> listTopicWords(int topicId) async {
+    final res = await http.get(Uri.parse('$baseUrl/topics/$topicId/words'));
+    if (res.statusCode != 200) {
+      throw Exception('List topic words failed');
+    }
+    final data = jsonDecode(res.body) as List<dynamic>;
+    return data.map((e) => WordSummary.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> createTopic({required String name, String? description, String? icon}) async {
+    final payload = {
+      'name': name,
+      'description': description,
+      'icon': icon,
+    };
+    final res = await http.post(
+      Uri.parse('$baseUrl/admin/topics'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Create topic failed');
+    }
+  }
+
+  Future<void> deleteTopic(int id) async {
+    final res = await http.delete(Uri.parse('$baseUrl/admin/topics/$id'));
+    if (res.statusCode != 200) {
+      throw Exception('Delete topic failed');
+    }
+  }
+
+  Future<void> addWordToTopic(int topicId, int wordId) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/admin/topics/$topicId/words/$wordId'),
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Add word to topic failed');
+    }
+  }
+
+  Future<void> removeWordFromTopic(int topicId, int wordId) async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/admin/topics/$topicId/words/$wordId'),
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Remove word from topic failed');
+    }
   }
 }

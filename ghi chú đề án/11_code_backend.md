@@ -21,6 +21,8 @@ Tai lieu nay giai thich tung file, tung chuc nang backend.
   - /admin/examples/{id} (PUT/DELETE)
   - /admin/synonyms (GET/POST/PUT/DELETE)
   - /admin/proverbs (GET/POST/PUT/DELETE)
+  - /admin/topics (POST/DELETE)
+  - /admin/topics/{topic_id}/words/{word_id} (POST/DELETE)
 
 ### 2) backend/app/db.py
 - Quan ly ket noi SQLite.

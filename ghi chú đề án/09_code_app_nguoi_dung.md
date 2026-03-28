@@ -5,6 +5,7 @@ Tai lieu nay giai thich tung file, tung chuc nang trong app nguoi dung, theo cac
 ## Tong quan luong hoat dong
 - App mo man hinh Home.
 - Nguoi dung tim tu -> goi API -> hien chi tiet tu.
+- Trong luc go, app goi API lay goi y tu (recommendation).
 - Nguoi dung bam chu de -> hien danh sach tu trong chu de.
 
 ## Cac file chinh va vai tro
@@ -26,7 +27,7 @@ Tai lieu nay giai thich tung file, tung chuc nang trong app nguoi dung, theo cac
 - Vai tro: noi goi API.
 - Viec no lam:
   - fetchTopics(): lay danh sach chu de
-  - searchWords(query): tim tu theo tu khoa
+  - searchWords(query, limit?): tim tu theo tu khoa (co the gioi han so luong de lay goi y)
   - getWordById(id): lay chi tiet 1 tu
   - getTopicWords(topicId): lay tu theo chu de
 - Khi can sua:
@@ -46,8 +47,10 @@ Tai lieu nay giai thich tung file, tung chuc nang trong app nguoi dung, theo cac
 - Viec no lam:
   - Hien header
   - O tim kiem
+  - Danh sach goi y tu khi go (recommendation)
   - Danh sach tim gan day
   - Danh sach chu de
+  - Responsive: desktop full man, mobile vua khung
 - Ket noi voi API qua ApiClient.
 - Khi can sua:
   - Doi layout, them thanh phan moi
@@ -76,6 +79,8 @@ Tai lieu nay giai thich tung file, tung chuc nang trong app nguoi dung, theo cac
 - Vai tro: thanh tim kiem.
 - Viec no lam:
   - Nhap tu khoa va bam nut Tra
+  - Phat su kien onChanged de lay goi y
+  - Co nut xoa nhanh
 - Khi can sua:
   - Doi giao dien thanh tim kiem
 

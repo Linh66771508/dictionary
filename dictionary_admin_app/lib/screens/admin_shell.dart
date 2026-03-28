@@ -4,6 +4,7 @@ import 'dashboard_screen.dart';
 import 'dictionary_management_screen.dart';
 import 'synonym_management_screen.dart';
 import 'proverb_management_screen.dart';
+import 'topic_management_screen.dart';
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -20,6 +21,7 @@ class _AdminShellState extends State<AdminShell> {
     DictionaryManagementScreen(),
     SynonymManagementScreen(),
     ProverbManagementScreen(),
+    TopicManagementScreen(),
   ];
 
   @override
@@ -36,6 +38,7 @@ class _AdminShellState extends State<AdminShell> {
               NavigationRailDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book), label: Text('Từ vựng')),
               NavigationRailDestination(icon: Icon(Icons.compare_arrows_outlined), selectedIcon: Icon(Icons.compare_arrows), label: Text('Đồng nghĩa')),
               NavigationRailDestination(icon: Icon(Icons.article_outlined), selectedIcon: Icon(Icons.article), label: Text('Tục ngữ')),
+              NavigationRailDestination(icon: Icon(Icons.category_outlined), selectedIcon: Icon(Icons.category), label: Text('Chủ đề')),
             ],
           ),
           const VerticalDivider(width: 1),

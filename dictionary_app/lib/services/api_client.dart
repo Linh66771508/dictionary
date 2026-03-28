@@ -21,8 +21,11 @@ class ApiClient {
     return data.map((e) => Topic.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<List<WordSummary>> searchWords(String query) async {
-    final uri = Uri.parse('$baseUrl/words/search?q=$query');
+  Future<List<WordSummary>> searchWords(String query, {int? limit}) async {
+    final uri = Uri.parse('$baseUrl/words/search').replace(queryParameters: {
+      'q': query,
+      if (limit != null) 'limit': limit.toString(),
+    });
     final res = await http.get(uri);
     if (res.statusCode != 200) {
       throw Exception('Search failed');

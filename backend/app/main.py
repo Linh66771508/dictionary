@@ -30,6 +30,12 @@ class TopicOut(BaseModel):
     word_count: int
 
 
+class TopicCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    icon: Optional[str] = None
+
+
 class WordSummary(BaseModel):
     id: int
     word: str
@@ -780,4 +786,62 @@ def admin_delete_proverb(proverb_id: int):
     deleted = execute("DELETE FROM proverbs WHERE id = ?", [proverb_id])
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Proverb not found")
+    return {"status": "deleted"}
+
+
+@app.post("/admin/topics")
+def admin_create_topic(payload: TopicCreate):
+    if not payload.name.strip():
+        raise HTTPException(status_code=400, detail="Topic name is required")
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO topics (name, description, icon)
+            VALUES (?, ?, ?)
+            """,
+            [payload.name.strip(), payload.description, payload.icon],
+        )
+        conn.commit()
+        topic_id = int(cur.lastrowid)
+    return {"status": "created", "id": topic_id}
+
+
+@app.delete("/admin/topics/{topic_id}")
+def admin_delete_topic(topic_id: int):
+    deleted = execute("DELETE FROM topics WHERE id = ?", [topic_id])
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="Topic not found")
+    return {"status": "deleted"}
+
+
+@app.post("/admin/topics/{topic_id}/words/{word_id}")
+def admin_add_word_to_topic(topic_id: int, word_id: int):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM topics WHERE id = ?", [topic_id])
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Topic not found")
+        cur.execute("SELECT id FROM words WHERE id = ?", [word_id])
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Word not found")
+        cur.execute(
+            """
+            INSERT OR IGNORE INTO word_topics (word_id, topic_id)
+            VALUES (?, ?)
+            """,
+            [word_id, topic_id],
+        )
+        conn.commit()
+    return {"status": "created"}
+
+
+@app.delete("/admin/topics/{topic_id}/words/{word_id}")
+def admin_remove_word_from_topic(topic_id: int, word_id: int):
+    deleted = execute(
+        "DELETE FROM word_topics WHERE topic_id = ? AND word_id = ?",
+        [topic_id, word_id],
+    )
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="Word not in topic")
     return {"status": "deleted"}

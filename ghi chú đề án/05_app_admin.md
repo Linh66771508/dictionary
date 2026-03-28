@@ -6,6 +6,7 @@
 - Them, xoa, sua nghia va vi du.
 - Them, xoa, sua dong nghia.
 - Them, xoa, sua tuc ngu.
+- Quan ly chu de: them/xoa chu de, them/xoa tu trong chu de.
 
 ## File chinh
 - dictionary_admin_app\lib\main.dart
@@ -13,8 +14,10 @@
 - dictionary_admin_app\lib\screens\dictionary_management_screen.dart
 - dictionary_admin_app\lib\screens\synonym_management_screen.dart
 - dictionary_admin_app\lib\screens\proverb_management_screen.dart
+- dictionary_admin_app\lib\screens\topic_management_screen.dart
 - dictionary_admin_app\lib\services\api_client.dart
 - dictionary_admin_app\lib\config.dart
+- dictionary_admin_app\lib\models\topic.dart
 
 ## API goi su dung
 - GET /admin/stats
@@ -36,6 +39,12 @@
 - POST /admin/proverbs
 - PUT /admin/proverbs/{proverb_id}
 - DELETE /admin/proverbs/{proverb_id}
+- GET /topics
+- GET /topics/{topic_id}/words
+- POST /admin/topics
+- DELETE /admin/topics/{topic_id}
+- POST /admin/topics/{topic_id}/words/{word_id}
+- DELETE /admin/topics/{topic_id}/words/{word_id}
 
 ## URL backend
 - https://dictionary-q5mo.onrender.com
