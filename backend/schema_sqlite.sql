@@ -1,0 +1,73 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS words (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  word TEXT NOT NULL UNIQUE,
+  pronunciation TEXT,
+  part_of_speech TEXT,
+  frequency TEXT,
+  register TEXT,
+  etymology TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS word_senses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  word_id INTEGER NOT NULL,
+  sense_order INTEGER NOT NULL,
+  definition TEXT NOT NULL,
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS word_examples (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  word_id INTEGER NOT NULL,
+  example_text TEXT NOT NULL,
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS topics (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT,
+  icon TEXT
+);
+
+CREATE TABLE IF NOT EXISTS word_topics (
+  word_id INTEGER NOT NULL,
+  topic_id INTEGER NOT NULL,
+  PRIMARY KEY(word_id, topic_id),
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,
+  FOREIGN KEY(topic_id) REFERENCES topics(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS synonyms (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  word_id INTEGER NOT NULL,
+  synonym_word_id INTEGER NOT NULL,
+  intensity INTEGER,
+  frequency TEXT,
+  note TEXT,
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,
+  FOREIGN KEY(synonym_word_id) REFERENCES words(id) ON DELETE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS proverbs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  word_id INTEGER NOT NULL,
+  phrase TEXT NOT NULL,
+  meaning TEXT,
+  usage TEXT,
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS related_words (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  word_id INTEGER NOT NULL,
+  related_word_id INTEGER NOT NULL,
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,
+  FOREIGN KEY(related_word_id) REFERENCES words(id) ON DELETE NO ACTION
+);
+
+CREATE INDEX IF NOT EXISTS idx_words_word ON words(word);
