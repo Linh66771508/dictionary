@@ -6,37 +6,255 @@
 
 ## 🔧 BACKEND (Python - FastAPI)
 
-### `backend/app/db.py` - Quản Lý Database
-- **db.py**: Nhóm các hàm quản lý kết nối & thao tác với SQLite
-  ```python
-  get_conn()        # Kết nối đến database
-  init_db()         # Khởi tạo database lần đầu
-  query_all()       # Lấy nhiều hàng từ database  
-  query_one()       # Lấy một hàng từ database
-  execute()         # Thực hiện câu lệnh UPDATE/DELETE
-  execute_insert()  # Thêm dữ liệu mới và lấy ID
-  ```
+### ⚙️ Cấu Trúc Backend
+```
+backend/
+├── requirements.txt          # Thư viện Python (fastapi, uvicorn, psycopg2, ...)
+├── schema_sqlite.sql         # Cấu trúc database (SQLite)
+├── schema_postgres.sql       # Cấu trúc database (PostgreSQL)
+└── app/
+    ├── main.py               # Máy chủ API (FastAPI)
+    └── db.py                 # Hàm quản lý database
+```
 
-### `backend/app/main.py` - API Endpoints
-- **main.py**: Máy chủ API - cung cấp đường dẫn (/endpoints) để app gọi
-  ```
-  /topics/              # Lấy danh sách chủ đề
-  /words/search        # Tìm kiếm từ
-  /words/id/{id}       # Lấy chi tiết từ
-  /topics/{id}/words   # Lấy từ theo chủ đề
-  /admin/stats         # Thống kê cho quản trị
-  /admin/words         # Quản lý từ
-  ```
-- **Models (Classes)**: Định nghĩa cấu trúc dữ liệu
-  ```
-  TopicOut       # Thông tin chủ đề
-  WordSummary    # Thông tin tóm tắt từ
-  WordDetail     # Thông tin đầy đủ từ
-  Meaning        # Nghĩa của từ
-  Example        # Ví dụ sử dụng
-  Synonym        # Từ đồng nghĩa
-  Proverb        # Thành ngữ/Tục ngữ
-  ```
+### 📦 requirements.txt - Danh Sách Thư Viện
+```
+fastapi==0.111.0             # Framework tạo API
+uvicorn[standard]==0.30.1    # Máy chủ web chạy FastAPI
+python-dotenv==1.0.1         # Đọc file .env
+psycopg2-binary==2.9.9       # Driver PostgreSQL
+```
+
+### 🗄️ Database Schema (Cấu Trúc Bảng)
+
+#### Bảng `words` - Từ vựng
+```sql
+CREATE TABLE words (
+  id INTEGER PRIMARY KEY,
+  word TEXT NOT NULL UNIQUE,      -- Từ (ví dụ: "thương")
+  pronunciation TEXT,             -- Phát âm
+  part_of_speech TEXT,            -- Loại từ (danh từ, động từ, ...)
+  frequency TEXT,                 -- Tần suất (thường, hiếm, ...)
+  register TEXT,                  -- Mức độ (lịch sử, hiện đại, ...)
+  etymology TEXT,                 -- Nguồn gốc
+  created_at TIMESTAMP,           -- Ngày tạo
+  updated_at TIMESTAMP            -- Ngày cập nhật
+);
+```
+**Ví dụ**:
+| id | word  | pronunciation | part_of_speech | frequency | register | etymology |
+|----|-------|---------------|-----------------|-----------|----------|-----------|
+| 1  | thương | thương       | động từ         | thường    | hiện đại | từ Hán   |
+| 2  | yêu    | yêu          | động từ         | thường    | hiện đại | tiếng Việt|
+
+#### Bảng `word_senses` - Định nghĩa
+```sql
+CREATE TABLE word_senses (
+  id INTEGER PRIMARY KEY,
+  word_id INTEGER NOT NULL,       -- ID từ (tham chiếu words)
+  sense_order INTEGER NOT NULL,   -- Thứ tự (1, 2, 3, ...)
+  definition TEXT NOT NULL,       -- Định nghĩa chi tiết
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE
+);
+```
+**Ví dụ**:
+| id | word_id | sense_order | definition |
+|----|---------|-------------|-----------|
+| 10 | 1       | 1           | Cảm giác đau buồn khi mất người yêu |
+| 11 | 1       | 2           | Lo lắng, quan tâm |
+
+#### Bảng `word_examples` - Ví dụ sử dụng
+```sql
+CREATE TABLE word_examples (
+  id INTEGER PRIMARY KEY,
+  word_id INTEGER NOT NULL,       -- ID từ
+  example_text TEXT NOT NULL,     -- Câu ví dụ
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE
+);
+```
+**Ví dụ**: "Tôi thương em bằng trái tim"
+
+#### Bảng `topics` - Chuyên đề
+```sql
+CREATE TABLE topics (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,             -- Tên (ví dụ: "Thực vật")
+  description TEXT,               -- Mô tả
+  icon TEXT                       -- Biểu tượng (🌿, 🐕, ...)
+);
+```
+
+#### Bảng `word_topics` - Quan hệ từ ↔ chuyên đề
+```sql
+CREATE TABLE word_topics (
+  word_id INTEGER NOT NULL,       -- ID từ
+  topic_id INTEGER NOT NULL,      -- ID chuyên đề
+  PRIMARY KEY(word_id, topic_id),
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,
+  FOREIGN KEY(topic_id) REFERENCES topics(id) ON DELETE CASCADE
+);
+```
+
+#### Bảng `synonyms` - Từ đồng nghĩa
+```sql
+CREATE TABLE synonyms (
+  id INTEGER PRIMARY KEY,
+  word_id INTEGER NOT NULL,       -- ID từ gốc
+  synonym_word_id INTEGER NOT NULL,  -- ID từ đồng nghĩa
+  intensity INTEGER,              -- Mức độ tương tự (1-5)
+  frequency TEXT,                 -- Tần suất
+  note TEXT,                      -- Ghi chú
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,
+  FOREIGN KEY(synonym_word_id) REFERENCES words(id) ON DELETE NO ACTION
+);
+```
+
+#### Bảng `proverbs` - Thành ngữ/Tục ngữ
+```sql
+CREATE TABLE proverbs (
+  id INTEGER PRIMARY KEY,
+  word_id INTEGER NOT NULL,       -- ID từ liên quan
+  phrase TEXT NOT NULL,           -- Thành ngữ (ví dụ: "Thương tích lòng")
+  meaning TEXT,                   -- Ý nghĩa
+  usage TEXT,                     -- Cách sử dụng
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE
+);
+```
+
+#### Bảng `related_words` - Từ liên quan
+```sql
+CREATE TABLE related_words (
+  id INTEGER PRIMARY KEY,
+  word_id INTEGER NOT NULL,       -- ID từ
+  related_word_id INTEGER NOT NULL,  -- ID từ liên quan
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,
+  FOREIGN KEY(related_word_id) REFERENCES words(id) ON DELETE NO ACTION
+);
+```
+
+### 🔌 `backend/app/db.py` - Quản Lý Database
+
+#### Các hàm chính:
+```python
+get_conn()              # Kết nối đến database (SQLite hoặc PostgreSQL)
+init_db()               # Khởi tạo bảng lần đầu (chạy lần 1 khi startup)
+query_all(sql, params)  # Lấy nhiều hàng từ database
+query_one(sql, params)  # Lấy một hàng từ database
+execute(sql, params)    # Thực hiện UPDATE/DELETE
+execute_insert(sql, params)  # Thêm dữ liệu mới (INSERT) và lấy ID
+```
+
+#### Cách sử dụng:
+```python
+# Lấy tất cả từ
+rows = query_all("SELECT * FROM words")
+
+# Tìm kiếm từ có chứa 'th'
+rows = query_all("SELECT * FROM words WHERE word LIKE ?", ['%th%'])
+
+# Lấy một từ theo ID
+word = query_one("SELECT * FROM words WHERE id = ?", [1])
+
+# Cập nhật từ
+affected = execute("UPDATE words SET part_of_speech = ? WHERE id = ?", ['động từ', 1])
+
+# Thêm từ mới (lấy ID)
+new_id = execute_insert(
+    "INSERT INTO words (word, pronunciation, part_of_speech) VALUES (?, ?, ?)",
+    ['hoa', 'hoa', 'danh từ']
+)
+```
+
+### 🚀 `backend/app/main.py` - API Endpoints
+
+#### Các Endpoint chính:
+```
+GET  /health                      # Kiểm tra server hoạt động
+GET  /topics                      # Lấy danh sách chủ đề
+GET  /topics/{topic_id}/words     # Lấy từ trong chủ đề
+GET  /words/search?q={keyword}    # Tìm kiếm từ
+GET  /words/id/{word_id}          # Lấy chi tiết từ
+```
+
+#### Models (Pydantic Classes):
+```python
+TopicOut        # Thông tin chủ đề
+WordSummary     # Thông tin tóm tắt từ
+WordDetail      # Thông tin đầy đủ từ
+MeaningOut      # Một định nghĩa
+ExampleOut      # Một ví dụ
+SynonymOut      # Một từ đồng nghĩa
+ProverbOut      # Một thành ngữ
+AdminStats      # Thống kê (tổng số từ, đồng nghĩa, ...)
+```
+
+#### Ví dụ Response:
+
+**GET /topics**
+```json
+[
+  {
+    "id": 1,
+    "name": "Thực vật",
+    "description": "Các từ về cây, hoa, lá",
+    "icon": "🌿",
+    "word_count": 45
+  }
+]
+```
+
+**GET /words/id/1**
+```json
+{
+  "id": 1,
+  "word": "thương",
+  "pronunciation": "thương",
+  "part_of_speech": "động từ",
+  "frequency": "thường",
+  "register": "hiện đại",
+  "etymology": "từ Hán",
+  "meanings": [
+    {"id": 10, "definition": "Cảm giác đau buồn...", "sense_order": 1},
+    {"id": 11, "definition": "Lo lắng, quan tâm", "sense_order": 2}
+  ],
+  "examples": [{"id": 20, "example_text": "Tôi thương em bằng trái tim"}],
+  "synonyms": [{"id": 30, "word": "thương", "synonym_word": "yêu", "intensity": 4}],
+  "proverbs": [{"id": 40, "phrase": "Thương tích lòng", "meaning": "..."}],
+  "topics": [{"id": 2, "name": "Động vật"}]
+}
+```
+
+### 💾 Cấu hình Database
+
+Tạo file `.env` trong folder `backend/`:
+```env
+# Nếu dùng SQLite (phát triển cục bộ)
+SQLITE_DB_PATH=./data/dictionary.db
+DB_DRIVER=sqlite
+
+# HOẶC nếu dùng PostgreSQL (production)
+DATABASE_URL=postgres://user:password@localhost:5432/dictionary
+DB_DRIVER=postgres
+```
+
+### 🚢 Cách chạy Backend
+
+```bash
+# 1. Cài đặt dependencies
+cd backend
+pip install -r requirements.txt
+
+# 2. Chạy server
+uvicorn app.main:app --reload
+# Server chạy tại: http://localhost:8000
+
+# 3. Test API
+curl http://localhost:8000/health
+curl http://localhost:8000/topics
+
+# 4. Xem API documentation
+# Mở browser: http://localhost:8000/docs
+```
 
 ---
 
