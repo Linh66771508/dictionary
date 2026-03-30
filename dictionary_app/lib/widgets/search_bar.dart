@@ -1,11 +1,16 @@
-﻿import 'package:flutter/material.dart';
+﻿// ============================================================================
+// Widget: SearchBar - Thanh tìm kiếm ứng dụng
+// Tác dụng: Cho phép người dùng nhập từ cần tìm và bấm nút tra
+// ============================================================================
+
+import 'package:flutter/material.dart';
 
 class SearchBar extends StatelessWidget {
-  final TextEditingController controller;
-  final VoidCallback onSubmit;
-  final ValueChanged<String>? onChanged;
-  final VoidCallback? onClear;
-  final bool isBusy;
+  final TextEditingController controller; // Quản lý input từ người dùng
+  final VoidCallback onSubmit; // Callback khi bấm nút tra
+  final ValueChanged<String>? onChanged; // Callback khi gõ chữ
+  final VoidCallback? onClear; // Callback khi xóa text
+  final bool isBusy; // Trạng thái đang tác (loading)
 
   const SearchBar({
     super.key,
@@ -29,7 +34,10 @@ class SearchBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFBFDBFE), width: 2),
             boxShadow: const [
-              BoxShadow(color: Color(0x14000000), blurRadius: 6, offset: Offset(0, 3)),
+              BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 3)),
             ],
           ),
           child: Row(
@@ -62,14 +70,17 @@ class SearchBar extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2563EB),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
                 child: isBusy
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
                     : const Text('Tra'),
               ),

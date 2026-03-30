@@ -1,4 +1,15 @@
-﻿import 'package:flutter/material.dart';
+﻿// ============================================================================
+// FILE: word_detail_screen.dart - MÀN HÌNH CHI TIẾT TỬ
+// TÁC DỤG: Hiển thị TOÀN BỘ thông tin về một từ
+// ĐẬU DIỂN THỊ:
+//   - Tên từ, phát âm, loại từ
+//   - Các nghĩa (có thể nhiều)
+//   - Ví dụ sử dụng
+//   - Từ đồng nghĩa (từ tương tự)
+//   - Thành ngữ liên quan
+// ============================================================================
+
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../models/word_detail.dart';
@@ -46,17 +57,21 @@ class WordDetailScreen extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 4,
                   children: [
-                    if (detail.pronunciation != null && detail.pronunciation!.isNotEmpty)
+                    if (detail.pronunciation != null &&
+                        detail.pronunciation!.isNotEmpty)
                       _tag(detail.pronunciation!),
-                    if (detail.partOfSpeech != null && detail.partOfSpeech!.isNotEmpty)
+                    if (detail.partOfSpeech != null &&
+                        detail.partOfSpeech!.isNotEmpty)
                       _tag(detail.partOfSpeech!),
-                    if (detail.frequency != null && detail.frequency!.isNotEmpty)
+                    if (detail.frequency != null &&
+                        detail.frequency!.isNotEmpty)
                       _tag('Tần suất: ${detail.frequency}'),
                     if (detail.register != null && detail.register!.isNotEmpty)
                       _tag('Văn phong: ${detail.register}'),
                   ],
                 ),
-                if (detail.etymology != null && detail.etymology!.isNotEmpty) ...[
+                if (detail.etymology != null &&
+                    detail.etymology!.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   Text(
                     detail.etymology!,
@@ -78,7 +93,8 @@ class WordDetailScreen extends StatelessWidget {
                       leading: CircleAvatar(
                         radius: 12,
                         backgroundColor: const Color(0xFFDBEAFE),
-                        child: Text('${entry.key + 1}', style: const TextStyle(fontSize: 12)),
+                        child: Text('${entry.key + 1}',
+                            style: const TextStyle(fontSize: 12)),
                       ),
                       title: Text(entry.value.definition),
                     ),
@@ -109,19 +125,17 @@ class WordDetailScreen extends StatelessWidget {
               child: Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: detail.synonyms
-                    .map(
-                      (syn) {
-                        final label = syn.synonymWord ?? syn.word ?? '';
-                        return ActionChip(
-                          label: Text(label),
-                          onPressed: label.isEmpty ? null : () => onWordTap(label),
-                          backgroundColor: const Color(0xFFECFEFF),
-                          labelStyle: const TextStyle(color: Color(0xFF0F766E)),
-                        );
-                      },
-                    )
-                    .toList(),
+                children: detail.synonyms.map(
+                  (syn) {
+                    final label = syn.synonymWord ?? syn.word ?? '';
+                    return ActionChip(
+                      label: Text(label),
+                      onPressed: label.isEmpty ? null : () => onWordTap(label),
+                      backgroundColor: const Color(0xFFECFEFF),
+                      labelStyle: const TextStyle(color: Color(0xFF0F766E)),
+                    );
+                  },
+                ).toList(),
               ),
             ),
           ],
@@ -133,7 +147,9 @@ class WordDetailScreen extends StatelessWidget {
                 children: detail.proverbs
                     .map(
                       (p) => ListTile(
-                        title: Text(p.phrase, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        title: Text(p.phrase,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600)),
                         subtitle: Text(p.meaning ?? ''),
                       ),
                     )
@@ -189,7 +205,8 @@ class WordDetailScreen extends StatelessWidget {
         color: const Color(0xFFE0E7FF),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 12, color: Color(0xFF3730A3))),
+      child: Text(text,
+          style: const TextStyle(fontSize: 12, color: Color(0xFF3730A3))),
     );
   }
 }

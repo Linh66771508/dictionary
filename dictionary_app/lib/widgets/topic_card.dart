@@ -1,9 +1,14 @@
-﻿import 'package:flutter/material.dart';
+﻿// ============================================================================
+// Widget: TopicCard - Thẻ hiển một chủ đề
+// Tác dụng: Hiển thị chủ đề với biểu tượng, tên và số từ
+// ============================================================================
+
+import 'package:flutter/material.dart';
 import '../models/topic.dart';
 
 class TopicCard extends StatelessWidget {
-  final Topic topic;
-  final VoidCallback onTap;
+  final Topic topic; // Dữ liệu chủ đề
+  final VoidCallback onTap; // Callback khi người dùng bấm
 
   const TopicCard({
     super.key,
@@ -14,7 +19,7 @@ class TopicCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: onTap, // Thực hiện callback khi bấm
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -24,6 +29,7 @@ class TopicCard extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // Biểu tượng emoji của chủ đề
             Container(
               width: 44,
               height: 44,
@@ -32,14 +38,17 @@ class TopicCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
-              child: Text(topic.icon ?? '✨', style: const TextStyle(fontSize: 20)),
+              child: Text(topic.icon ?? '\u2728',
+                  style: const TextStyle(fontSize: 20)),
             ),
             const SizedBox(width: 12),
+            // Tên và mô tả
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(topic.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text(topic.name,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
                   Text(
                     topic.description ?? '',
@@ -49,7 +58,9 @@ class TopicCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text('${topic.wordCount} từ', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+            // Số từ trong chủ đề
+            Text('${topic.wordCount} từ',
+                style: const TextStyle(fontSize: 12, color: Colors.black54)),
           ],
         ),
       ),

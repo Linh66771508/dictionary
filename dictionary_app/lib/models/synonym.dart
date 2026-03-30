@@ -1,10 +1,15 @@
-﻿class Synonym {
-  final int id;
-  final String? word;
-  final String? synonymWord;
-  final int? intensity;
-  final String? frequency;
-  final String? note;
+﻿// ============================================================================
+// Model: Synonym - Từ đồng nghĩa
+// Dùng theo: Hiển thị những từ có ý nghĩa tương tự
+// ============================================================================
+
+class Synonym {
+  final int id; // ID của mối quan hệ đồng nghĩa
+  final String? word; // Từ gốc
+  final String? synonymWord; // Từ đồng nghĩa
+  final int? intensity; // Mức độ tương tự (1-5, càng cao càng giống)
+  final String? frequency; // Tần suất sử dụng (thường, hiếm, ...)
+  final String? note; // Ghi chú thêm
 
   Synonym({
     required this.id,
@@ -15,6 +20,7 @@
     this.note,
   });
 
+  // Chuyển đổi từ JSON thành đối tượng Synonym
   factory Synonym.fromJson(Map<String, dynamic> json) {
     return Synonym(
       id: json['id'] as int,

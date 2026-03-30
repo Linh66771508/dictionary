@@ -1,4 +1,11 @@
-﻿import 'package:flutter/material.dart';
+﻿// ============================================================================
+// FILE: topic_screen.dart - MÀN HÌNH CHỦNG ĐỀ
+// TÁC DỤG: Hiển thị danh sách tất cả các từ trong một chủ đề
+// VÍ DỤ: Nếu bấm chủ đề "Động vật", sẽ thấy: chó, mèo, chim, v.v.
+// CÓ THỂ: Bấm từ any → xem chi tiết từ đó
+// ============================================================================
+
+import 'package:flutter/material.dart';
 
 import '../models/topic.dart';
 import '../models/word_summary.dart';
@@ -40,8 +47,10 @@ class TopicScreen extends StatelessWidget {
               final word = words[index];
               return ListTile(
                 tileColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                title: Text(word.word, style: const TextStyle(fontWeight: FontWeight.w600)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                title: Text(word.word,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
                 subtitle: Text(word.shortDef ?? ''),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => onWordTap(word),
