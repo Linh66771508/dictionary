@@ -1720,8 +1720,9 @@ def admin_add_word_to_topic(topic_id: int, word_id: int):
             raise HTTPException(status_code=404, detail="Word not found")
         cur.execute(
             """
-            INSERT OR IGNORE INTO word_topics (word_id, topic_id)
+            INSERT INTO word_topics (word_id, topic_id)
             VALUES (?, ?)
+            ON CONFLICT DO NOTHING
             """,
             [word_id, topic_id],
         )

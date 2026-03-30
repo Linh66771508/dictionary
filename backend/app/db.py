@@ -4,16 +4,21 @@
 # ============================================================================
 
 import os
+import re
 import sqlite3
 from contextlib import contextmanager
 from typing import Any, Dict, Iterable, List, Optional
 
 from dotenv import load_dotenv
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 load_dotenv()
 
 # Đường dẫn tới file cơ sở dữ liệu SQLite
 DB_PATH = os.getenv("SQLITE_DB_PATH", "./data/dictionary.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+USE_POSTGRES = bool(DATABASE_URL) or os.getenv("DB_DRIVER") == "postgres"
 
 
 # Hàm tạo thư mục database nếu chưa tồn tại
@@ -33,9 +38,20 @@ def _ensure_db_dir() -> None:
         DB_PATH = "./data/dictionary.db"
         _ensure_db_dir()  # Nếu ./data không tồn tại -> tạo ./data
     """
+    if USE_POSTGRES:
+        return
     db_dir = os.path.dirname(os.path.abspath(DB_PATH))
     if db_dir and not os.path.exists(db_dir):
         os.makedirs(db_dir, exist_ok=True)
+
+
+def _convert_sql(sql: str) -> str:
+    """
+    Chuyển placeholder từ SQLite (?) sang PostgreSQL (%s) nếu cần.
+    """
+    if USE_POSTGRES:
+        return re.sub(r"\?", "%s", sql)
+    return sql
 
 
 # Hàm khởi tạo cơ sở dữ liệu lần đầu tiên
@@ -70,12 +86,22 @@ def init_db() -> None:
         - Nếu schema không tồn tại -> sẽ raise FileNotFoundError
     """
     _ensure_db_dir()
-    schema_path = os.path.join(os.path.dirname(__file__), "..", "schema_sqlite.sql")
+    schema_file = "schema_postgres.sql" if USE_POSTGRES else "schema_sqlite.sql"
+    schema_path = os.path.join(os.path.dirname(__file__), "..", schema_file)
     schema_path = os.path.abspath(schema_path)
     with get_conn() as conn:
         with open(schema_path, "r", encoding="utf-8") as f:
-            conn.executescript(f.read())
-        conn.commit()
+            schema_sql = f.read()
+        if USE_POSTGRES:
+            cur = conn.cursor()
+            for stmt in schema_sql.split(";"):
+                stmt = stmt.strip()
+                if stmt:
+                    cur.execute(stmt)
+            conn.commit()
+        else:
+            conn.executescript(schema_sql)
+            conn.commit()
 
 
 # Hàm kết nối tới database
@@ -106,9 +132,12 @@ def get_conn():
         sqlite3.Connection: Đối tượng kết nối có thể dùng để thực hiện SQL
     """
     _ensure_db_dir()
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON;")
+    if USE_POSTGRES:
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    else:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON;")
     try:
         yield conn
     finally:
@@ -144,6 +173,11 @@ def _rows_to_dicts(rows: Iterable[sqlite3.Row]) -> List[Dict[str, Any]]:
         - Hàm này là private (bắt đầu với _), không được gọi từ code khác
         - Được dùng bởi query_all() và _rows_to_dicts()
     """
+    rows = list(rows)
+    if not rows:
+        return []
+    if isinstance(rows[0], dict):
+        return rows
     return [dict(row) for row in rows]
 
 
@@ -200,7 +234,7 @@ def query_all(sql: str, params: Optional[Iterable[Any]] = None) -> List[Dict[str
     """
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute(sql, params or [])
+        cur.execute(_convert_sql(sql), params or [])
         rows = cur.fetchall()
         return _rows_to_dicts(rows)
 
@@ -264,7 +298,7 @@ def query_one(sql: str, params: Optional[Iterable[Any]] = None) -> Optional[Dict
     """
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute(sql, params or [])
+        cur.execute(_convert_sql(sql), params or [])
         row = cur.fetchone()
         if not row:
             return None
@@ -327,7 +361,7 @@ def execute(sql: str, params: Optional[Iterable[Any]] = None) -> int:
     """
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute(sql, params or [])
+        cur.execute(_convert_sql(sql), params or [])
         conn.commit()
         return cur.rowcount
 
@@ -394,6 +428,15 @@ def execute_insert(sql: str, params: Optional[Iterable[Any]] = None) -> int:
     """
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute(sql, params or [])
-        conn.commit()
-        return int(cur.lastrowid)
+        if USE_POSTGRES:
+            sql_conv = _convert_sql(sql).rstrip().rstrip(";")
+            if "RETURNING" not in sql_conv.upper():
+                sql_conv += " RETURNING id"
+            cur.execute(sql_conv, params or [])
+            row = cur.fetchone()
+            conn.commit()
+            return int(row["id"]) if row and "id" in row else 0
+        else:
+            cur.execute(_convert_sql(sql), params or [])
+            conn.commit()
+            return int(cur.lastrowid)
